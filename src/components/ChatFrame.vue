@@ -49,7 +49,7 @@ const handleWheel = (event) => {
     <div class="container">
         <div class="chat_frame" ref="scrollContainer" @wheel="handleWheel">
             <div class="chat">
-                <div style="padding: 0;" v-for="msg in msgList" :key="msg.id">
+                <div v-if="msgList" style="padding: 0;" v-for="msg in msgList" :key="msg.id">
                     <ChatMessage :message="msg" :userList="userList"></ChatMessage>
                 </div>
             </div>
