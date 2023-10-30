@@ -9,6 +9,17 @@ const heartbeatInterval = 30000; // 30秒
 let reconnectTimer = null;
 const MAX_RECONNECT_TIME = 60 * 1000; // 最长重连时间 60s 
 
+const handleReconnect = () => {
+    if (!reconnectTimer) {
+        let waitTime = 5000; // 初始等待时间为 5s
+        reconnectTimer = setInterval(() => {
+            console.log(`正在尝试重连，等待时间：${waitTime}ms`);
+            wsInit(); // 尝试重新连接服务器
+            waitTime = Math.min(waitTime * 2, MAX_RECONNECT_TIME); // 等待时间指数增长
+        }, waitTime);
+    }
+};
+
 const handleHeartbeat = () => {
     clearInterval(heartbeatTimer); // 清除旧的心跳定时器
     heartbeat(); // 重新启动心跳定时器
@@ -23,11 +34,11 @@ const heartbeat = () => {
 
 export const wsInit = () => {
     // WebSocket构造函数，创建WebSocket对象
-    ws = new WebSocket(`ws://localhost:8080/ws/${localStorage.getItem('TOKEN')}`)
+    ws = new WebSocket(`ws://${location.host}/ws/${localStorage.getItem('TOKEN')}`)
     // 连接成功后的回调函数
     ws.onopen = () => {
         console.log('客户端连接成功')
-        clearInterval(reconnectTimer);
+        clearInterval(reconnectTimer); // Cancel reconnection attempts
         handleHeartbeat(); // 处理心跳消息
         console.log("启动心跳定时器")
     };
@@ -41,26 +52,20 @@ export const wsInit = () => {
             // 聊天数据
             store.commit('msgListAdd', result.data)
         } else if (result.type === 2) {
-            // 更新数据
+            // 在线人数更新
+            store.commit('updateOnlineUser', result.data)
         } else if (result.type === 3) {
-            // 用户数据
-            localStorage.setItem("USER_INFO", JSON.stringify(result.data))
+            // 用户未登录或token已过期, 更改登录状态
+            console.log(result.data)
+            localStorage.removeItem('TOKEN')
+			store.commit('changeLoginState', false)
         }
-
-        // console.log('收到服务器响应', result)
-
     };
     // 连接关闭后的回调函数
     ws.onclose = (evt) => {
         console.log("关闭客户端连接");
         clearInterval(heartbeatTimer); // 清除心跳定时器
-        // 在 MAX_RECONNECT_TIME 时间内进行重连
-        let waitTime = 5000; // 初始等待时间为 5s
-        reconnectTimer = setInterval(() => {
-            console.log(`正在尝试重连，等待时间：${waitTime}ms`);
-            wsInit(); // 尝试重新连接服务器
-            waitTime = Math.min(waitTime * 2, MAX_RECONNECT_TIME); // 等待时间指数增长
-        }, waitTime);
+        handleReconnect(); // Start reconnection attempts
     };
     // 连接失败后的回调函数
     ws.onerror = (evt) => {
@@ -79,15 +84,21 @@ export const getUserInfo = () => {
         if (code === 200) {
             store.commit('updateUser', data)
         }
+    }).catch(error => {
+        Message('用户信息接口异常', 'error')
     })
 }
 
-export const getUserInfoList = (ids) => {
-    axios.post("/user/info/list", ids).then(resp => {
+export const getUserList = (ids) => {
+    axios.post("/user/list", ids).then(resp => {
         const { code, message, data } = resp.data
         if (code === 200) {
-            store.commit('updateUserInfoList', data)
+            store.commit('updateUserList', data)
+        } else {
+            Message(message, 'warning')
         }
+    }).catch(error => {
+        Message('用户列表接口异常', 'error')
     })
 }
 
@@ -105,10 +116,17 @@ export const getMsgRecord = (currentId) => {
         form.currentId = store.state.msgList[0].id
     }
     axios.post("/chat/msg/record", form).then(resp => {
-        const { code, message, data } = resp.data
+        const { code, data } = resp.data
         if (code === 200) {
             store.commit('msgListInsert', data)
         }
+    }).catch(error => {
+        Message('消息记录接口异常', 'error')
     })
+}
+
+export const openUserCard = (user) => {
+    store.commit('updateuserCardValue', user)
+    store.commit('updateuserCardState', true)
 }
 

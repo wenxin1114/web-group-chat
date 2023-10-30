@@ -3,7 +3,7 @@ import store from '../store';
 
 
 const request = axios.create({
-	baseURL: `http://localhost:8080`, // 根据实际情况设置基本URL
+	baseURL: `/api`, // 根据实际情况设置基本URL
 	// 这里可以添加其他默认配置
 });
 
@@ -25,9 +25,7 @@ request.interceptors.response.use(
 	(resp) => {
 		const { code } = resp.data
 		if (code === 401) {           // 没有登录，或者token过期
-			if (localStorage.getItem('TOKEN')) {
-				localStorage.removeItem('TOKEN')
-			}
+			localStorage.removeItem('TOKEN')
 			// 更改登录状态
 			store.commit('changeLoginState', false)
 		}

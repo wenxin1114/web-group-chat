@@ -22,4 +22,5 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+
 </style>

@@ -7,8 +7,10 @@ const store = createStore({
       loginState: localStorage.getItem('TOKEN') ? true : false,
       user: {},
       userList: [],
+      onlineUser: [],
       msgList: [],
-      isMdUp: document.body.clientWidth > 768
+      userCardState: false,
+      userCardValue: {}
     }
   },
   mutations: {
@@ -21,14 +23,23 @@ const store = createStore({
     updateIsMdUp(state) {
       state.isMdUp = document.body.clientWidth > 768 
     },
-    updateUserInfoList(state, userList) {
+    updateUserList(state, userList) {
       state.userList = userList
     },
     msgListAdd(state, element) {
       state.msgList.push(element)
     },
-    msgListInsert(state, list) {
-      state.msgList.unshift(...list)
+    msgListInsert(state, array) {
+      state.msgList.unshift(...array)
+    },
+    updateOnlineUser(state, array) {
+      state.onlineUser = array
+    },
+    updateuserCardValue(state, value) {
+      state.userCardValue = value
+    },
+    updateuserCardState(state, newState) {
+      state.userCardState = newState
     }
   }
 })

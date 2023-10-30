@@ -2,3 +2,10 @@
     padding: 0;
     margin: 0;
 }
+
+body {
+    height: 100vh;
+    /* background-image: url(../src/assets/bg.png);
+    background-size: 100% 100%; */
+    background-image: linear-gradient(to top, #5ee7df 0%, #b490ca 100%);
+}
