@@ -21,7 +21,7 @@ const imgError = (event) => {
         </div>
         <div class="content">
             <div :style="{ textAlign: isMyself ? 'right' : 'left' }">
-                <span>{{ sendUser.nickname }}</span>
+                <span class="nickname" >{{ sendUser.nickname }}</span>
             </div>
             <div class="msg" :style="{
                 backgroundColor: isMyself ? 'rgb(0,153,255)' : 'rgb(255,255,255)',
@@ -56,11 +56,18 @@ const imgError = (event) => {
     border: 2px solid #2698ea;
 }
 
+
 .content {
     margin: 0 10px;
 }
-
+.nickname {
+    width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 .content .msg {
+    display: inline-block; /* 将元素设置为内联块级元素 */
     background-color: rgb(0, 153, 255);
     color: rgb(255, 255, 255);
     padding: 12px;
@@ -71,5 +78,11 @@ const imgError = (event) => {
     white-space: normal;
     word-break: break-all;
     overflow: hidden;
+}
+
+@media screen and (max-width: 768px) {
+    .nickname {
+        width: 200;
+    }
 }
 </style>

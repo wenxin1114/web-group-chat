@@ -61,6 +61,7 @@ if (loginState) {
     height: 80%;
 }
 .right {
+    width: 15%;
     height: 80%;
 }
 @media screen and (max-width: 768px)  {

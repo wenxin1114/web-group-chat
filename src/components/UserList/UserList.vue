@@ -22,7 +22,7 @@ const imgError = (event) => {
             <div v-for="user in userList">
                 <div :class="['user', { 'gary': !onlineUser.includes(user.id) }]">
                     <img :src="'/api/pic/' + user.avatar" @error="imgError">
-                    <span>{{ user.nickname }}</span>
+                    <span class="nickname">{{ user.nickname }}</span>
                 </div>
             </div>
         </div>
@@ -32,7 +32,6 @@ const imgError = (event) => {
 <style scoped>
 .user-list {
     min-width: 200px;
-    width: 15%;
     height: 100%;
     border-radius: 15px;
     background-color: #efeded;
@@ -70,5 +69,11 @@ const imgError = (event) => {
 
 .user:hover {
     background-color: #d5caca;
+}
+
+.nickname {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 </style>

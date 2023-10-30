@@ -9,7 +9,6 @@ import EmojiBox from '../EmojiBox/EmojiBox.vue';
 const store = useStore()
 const { proxy } = getCurrentInstance()
 const emojiState = ref(false)
-
 const sendFrom = reactive({
     sendUser: null,
     content: '',
@@ -21,8 +20,6 @@ const msgList = computed(() => {
 const scrollContainer = ref(null);
 const emojiBox = ref(null)
 const emojiIcon = ref(null)
-
-
 // 监听消息数组长度
 watch(() => store.state.msgList.length, () => {
     nextTick(() => {
@@ -51,12 +48,10 @@ const handleWheel = (event) => {
         getMsgRecord()
     }
 }
-
 // 添加表情
 const addEmoji = (emoji) => {
     sendFrom.content += emoji
 }
-
 // 点击窗口执行其它操作
 const clickFrame = (event) => {
     if (
@@ -67,7 +62,6 @@ const clickFrame = (event) => {
         emojiState.value = false
     }
 }
-
 </script>
 
 <template>
@@ -105,7 +99,6 @@ const clickFrame = (event) => {
 <style scoped>
 .cf-container {
     min-width: 360px;
-    /* width: 60%; */
     height: 100%;
     display: flex;
     justify-content: center;

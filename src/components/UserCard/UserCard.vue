@@ -35,12 +35,16 @@ const updateNickname = () => {
         Message('新昵称与原昵称一致', 'warning')
     }
     if (form.nickname) {
+        if (form.nickname.length > 8) {
+            Message('昵称长度不能大于8', 'warning')
+            return;
+        }
         axios.post('/user/update', { 'nickname': form.nickname }).then(resp => {
             const { code, message } = resp.data
             if (code === 200) {
                 Message(message, 'success')
                 getUserInfo()
-                getUserList()                                                                                                                                                                                                                                                                                                                                                                                               
+                getUserList()
                 editState.value = null
             } else {
                 Message(message, 'warning')
@@ -60,7 +64,7 @@ const uploadPic = async (file) => {
         await axios.post('/upload/pic', formData).then(resp => {
             const { code, message, data } = resp.data
             if (code === 200) {
-                result =  data
+                result = data
             } else {
                 Message(message, 'warning')
             }
@@ -73,18 +77,18 @@ const uploadPic = async (file) => {
 const updateAvatar = () => {
     uploadPic(uploadFile.value.files[0]).then(avatar => {
         if (avatar) {
-        axios.post("/user/update", { 'avatar': avatar }).then(resp => {
-            const { code, message } = resp.data
-            if (code === 200) {
-                Message('头像更换成功', 'success')
-                getUserInfo()
-                getUserList()
-            } else {
-                Message(message, 'warning')
-            }
-        }).catch(error => {
-            Message('头像更换接口异常', 'error')
-        })
+            axios.post("/user/update", { 'avatar': avatar }).then(resp => {
+                const { code, message } = resp.data
+                if (code === 200) {
+                    Message('头像更换成功', 'success')
+                    getUserInfo()
+                    getUserList()
+                } else {
+                    Message(message, 'warning')
+                }
+            }).catch(error => {
+                Message('头像更换接口异常', 'error')
+            })
         }
     })
 }
@@ -92,7 +96,7 @@ const updateAvatar = () => {
 
 <template>
     <div class="user-info" v-if="isMyself">
-        <img class="close" @click="closeCard"  src="./svg/close-small.svg">
+        <img class="close" @click="closeCard" src="./svg/close-small.svg">
         <div class="avatar">
             <img @click="uploadFile.click()" :src="'/api/pic/' + user.avatar" @error="imgError">
             <input type="file" ref="uploadFile" accept="image/png, image/jpeg" @change="updateAvatar">
@@ -110,7 +114,7 @@ const updateAvatar = () => {
         </div>
     </div>
     <div class="user-info" v-else>
-        <img class="close" @click="closeCard"  src="./svg/close-small.svg">
+        <img class="close" @click="closeCard" src="./svg/close-small.svg">
         <div class="avatar">
             <img :src="userCardValue.avatar" @error="imgError">
         </div>
@@ -168,6 +172,10 @@ input[type="file"] {
 
 .nickname {
     margin-right: 5px;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .info img {
@@ -229,6 +237,6 @@ input[type="file"] {
     cursor: pointer;
     background-color: #93d8ec;
 }
-@media screen and (max-width: 768px) {
-}
+
+@media screen and (max-width: 768px) {}
 </style>
