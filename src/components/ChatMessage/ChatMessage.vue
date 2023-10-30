@@ -1,20 +1,23 @@
 <script setup>
 import { computed } from 'vue'
 import { useStore } from 'vuex';
+import { openUserCard } from '../../utils/index'
 const store = useStore()
 const props = defineProps(['message'])
-import {openUserCard} from '../../utils/index'
 const userId = props.message.sendUser
 const sendUser = store.state.userList.find(user => user.id === userId)
 const isMyself = computed(() => {
     return userId === store.state.user.id
 })
+const imgError = (event) => {
+    event.target.src = new URL('../../assets/default_user.jpg', import.meta.url).href
+}
 </script>
 
 <template>
     <div v-if="sendUser" class="message_container" :style="{ justifyContent: isMyself ? 'right' : 'left' }">
         <div v-if="!isMyself" class="avatar">
-            <img @click="openUserCard(sendUser)" :src="sendUser.avatar ? '/api/pic/' + sendUser.avatar : '/src/assets/default_user.jpg'" onerror="this.src = '/src/assets/default_user.jpg'">
+            <img @click="openUserCard(sendUser)" :src="'/api/pic/' + sendUser.avatar" @error="imgError">
         </div>
         <div class="content">
             <div :style="{ textAlign: isMyself ? 'right' : 'left' }">
@@ -28,7 +31,7 @@ const isMyself = computed(() => {
             </div>
         </div>
         <div v-if="isMyself" class="avatar">
-            <img @click="openUserCard(sendUser)" :src="sendUser.avatar ? '/api/pic/' + sendUser.avatar : '/src/assets/default_user.jpg'" onerror="this.src = '/src/assets/default_user.jpg'">
+            <img @click="openUserCard(sendUser)" :src="'/api/pic/' + sendUser.avatar" @error="imgError">
         </div>
     </div>
 </template>
@@ -47,6 +50,7 @@ const isMyself = computed(() => {
     border-radius: 50%;
     box-sizing: border-box;
 }
+
 .avatar img:hover {
     cursor: pointer;
     border: 2px solid #2698ea;

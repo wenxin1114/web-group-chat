@@ -11,6 +11,9 @@ const form = reactive({
     "nickname": null,
     "avatar": null
 })
+const imgError = (event) => {
+    event.target.src = new URL('../../assets/default_user.jpg', import.meta.url).href
+}
 
 const isMyself = computed(() => {
     return store.state.userCardValue.id === store.state.user.id
@@ -85,15 +88,13 @@ const updateAvatar = () => {
         }
     })
 }
-
-
 </script>
 
 <template>
     <div class="user-info" v-if="isMyself">
         <img class="close" @click="closeCard"  src="./svg/close-small.svg">
         <div class="avatar">
-            <img @click="uploadFile.click()" v-if="user.avatar" :src="user.avatar ? '/api/pic/' + user.avatar : '/src/assets/default_user.jpg'" onerror="this.src = '/src/assets/default_user.jpg'">
+            <img @click="uploadFile.click()" :src="'/api/pic/' + user.avatar" @error="imgError">
             <input type="file" ref="uploadFile" accept="image/png, image/jpeg" @change="updateAvatar">
         </div>
         <div v-if="!editState" class="info">
@@ -111,7 +112,7 @@ const updateAvatar = () => {
     <div class="user-info" v-else>
         <img class="close" @click="closeCard"  src="./svg/close-small.svg">
         <div class="avatar">
-            <img :src="userCardValue.avatar ? '/api/pic/' + userCardValue.avatar : '/src/assets/default_user.jpg'" onerror="this.src = '/src/assets/default_user.jpg'">
+            <img :src="userCardValue.avatar" @error="imgError">
         </div>
         <div class="info">
             <span class="nickname">{{ userCardValue.nickname }}</span>

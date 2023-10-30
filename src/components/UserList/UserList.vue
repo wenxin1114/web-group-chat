@@ -8,6 +8,9 @@ const userList = computed(() => {
 const onlineUser = computed(() => {
     return store.state.onlineUser
 })
+const imgError = (event) => {
+    event.target.src = new URL('../../assets/default_user.jpg', import.meta.url).href
+}
 </script>
 
 <template>
@@ -18,7 +21,7 @@ const onlineUser = computed(() => {
         <div class="list">
             <div v-for="user in userList">
                 <div :class="['user', { 'gary': !onlineUser.includes(user.id) }]">
-                    <img :src="user.avatar ? '/api/pic/' + user.avatar : '/src/assets/default_user.jpg'" onerror="this.src = '/src/assets/default_user.jpg'">
+                    <img :src="'/api/pic/' + user.avatar" @error="imgError">
                     <span>{{ user.nickname }}</span>
                 </div>
             </div>

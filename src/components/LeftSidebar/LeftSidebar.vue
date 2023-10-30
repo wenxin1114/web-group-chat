@@ -6,12 +6,15 @@ const store = useStore()
 const user = computed(() => {
     return store.state.user
 })
+const imgError = (event) => {
+    event.target.src = new URL('../../assets/default_user.jpg', import.meta.url).href
+}
 
 </script>
 <template>
     <div class="left-sidebar">
         <div class="avatar" >
-            <img @click="openUserCard(user)" :src="user.avatar ? '/api/pic/' + user.avatar : '/src/assets/default_user.jpg'" onerror="this.src = '/src/assets/default_user.jpg'">
+            <img @click="openUserCard(user)" :src="'/api/pic/' + user.avatar" @error="imgError">
         </div>
     </div>
 </template>
