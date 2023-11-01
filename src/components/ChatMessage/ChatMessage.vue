@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useStore } from 'vuex';
 import { openUserCard } from '../../utils/index'
+import BigPic from '../BigPic/index'
 const store = useStore()
 const props = defineProps(['message'])
 const userId = props.message.sendUser
@@ -9,29 +10,50 @@ const sendUser = store.state.userList.find(user => user.id === userId)
 const isMyself = computed(() => {
     return userId === store.state.user.id
 })
-const imgError = (event) => {
+const avatarError = (event) => {
     event.target.src = new URL('../../assets/default_user.jpg', import.meta.url).href
 }
+const picError = (event) => {
+    event.target.src = new URL('../../assets/picError.svg', import.meta.url).href
+}
+
+const showTime = computed(() => {
+    // 获取目标日期时间
+    let targetDate = new Date(props.message.sendTime);
+    // 获取当前日期时间
+    let now = new Date();
+    // 判断是否是同一天
+    if (targetDate.toDateString() === now.toDateString()) {
+        return props.message.sendTime.split(' ')[1]
+    } else {
+        return props.message.sendTime
+    }
+})
 </script>
 
 <template>
     <div v-if="sendUser" class="message_container" :style="{ justifyContent: isMyself ? 'right' : 'left' }">
         <div v-if="!isMyself" class="avatar">
-            <img @click="openUserCard(sendUser)" :src="'/api/pic/' + sendUser.avatar" @error="imgError">
+            <img @click="openUserCard(sendUser)" :src="'/api/pic/' + sendUser.avatar" @error="avatarError">
         </div>
         <div class="content">
             <div :style="{ textAlign: isMyself ? 'right' : 'left' }">
-                <span class="nickname" >{{ sendUser.nickname }}</span>
+                <span class="send-time" v-if="isMyself">{{ showTime }}</span>
+                <span class="nickname">{{ sendUser.nickname }}</span>
+                <span class="send-time" v-if="!isMyself">{{ showTime }}</span>
             </div>
             <div class="msg" :style="{
                 backgroundColor: isMyself ? 'rgb(0,153,255)' : 'rgb(255,255,255)',
-                color: isMyself ? 'rgb(255,255,255)' : 'rgb(0,0,0)'
+                color: isMyself ? 'rgb(255,255,255)' : 'rgb(0,0,0)',
+                float: isMyself ? 'right' : 'left'
             }">
-                {{ message.content }}
+                <p v-if="message.contentType === 0">{{ message.content }}</p>
+                <img v-else-if="message.contentType === 1" @click="BigPic($event.target.src)"
+                    :src="'/api/pic/' + message.content" @error="picError">
             </div>
         </div>
         <div v-if="isMyself" class="avatar">
-            <img @click="openUserCard(sendUser)" :src="'/api/pic/' + sendUser.avatar" @error="imgError">
+            <img @click="openUserCard(sendUser)" :src="'/api/pic/' + sendUser.avatar" @error="avatarError">
         </div>
     </div>
 </template>
@@ -56,21 +78,28 @@ const imgError = (event) => {
     border: 2px solid #2698ea;
 }
 
+.send-time {
+    color: #948d8d;
+    margin: 0 10px;
+}
 
 .content {
     margin: 0 10px;
 }
+
 .nickname {
     width: 200px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
 .content .msg {
-    display: inline-block; /* 将元素设置为内联块级元素 */
+    display: inline-block;
+    /* 将元素设置为内联块级元素 */
     background-color: rgb(0, 153, 255);
     color: rgb(255, 255, 255);
-    padding: 12px;
+    padding: 8px;
     border-radius: 10px;
     margin-top: 5px;
     font-size: 16px;
@@ -80,9 +109,16 @@ const imgError = (event) => {
     overflow: hidden;
 }
 
+.msg img {
+    width: 200px;
+}
+
+.msg img:hover {
+    cursor: zoom-in;
+}
+
 @media screen and (max-width: 768px) {
     .nickname {
         width: 200;
     }
-}
-</style>
+}</style>

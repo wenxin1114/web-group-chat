@@ -2,7 +2,7 @@
 import { useStore } from 'vuex';
 import { ref, reactive, nextTick, watch, getCurrentInstance, computed } from 'vue'
 import ChatMessage from '../ChatMessage/ChatMessage.vue';
-import { getMsgRecord } from '../../utils';
+import { getMsgRecord, uploadPicture } from '../../utils';
 import Message from '../Message/index';
 import EmojiBox from '../EmojiBox/EmojiBox.vue';
 
@@ -20,6 +20,7 @@ const msgList = computed(() => {
 const scrollContainer = ref(null);
 const emojiBox = ref(null)
 const emojiIcon = ref(null)
+const uploadPic = ref(null)
 // 监听消息数组长度
 watch(() => store.state.msgList.length, () => {
     nextTick(() => {
@@ -40,11 +41,25 @@ const sendMessage = () => {
             Message('消息发送接口异常', 'warning')
         })
         sendFrom.content = ''
+        sendFrom.contentType = 0
     }
 }
-const handleWheel = (event) => {
-    if (scrollContainer.value.scrollTop === 0 && event.deltaY < 0) {
-        // 聊天窗口已到达顶部并且还向上滚动
+// 上传图片
+const sendPicMessage = () => {
+    uploadPicture(uploadPic.value.files[0]).then(resp => {
+        if (resp) {
+            sendFrom.contentType = 1
+            sendFrom.content = resp
+            sendMessage()
+
+        }
+    })
+
+}
+// 上滑获取历史记录
+const handleScroll = () => {
+    const scrollY = scrollContainer.value.scrollTop;
+    if (scrollY <= 10) {
         getMsgRecord()
     }
 }
@@ -66,7 +81,7 @@ const clickFrame = (event) => {
 
 <template>
     <div class="cf-container" @click="clickFrame">
-        <div class="chat_frame" ref="scrollContainer" @wheel="handleWheel">
+        <div class="chat_frame" ref="scrollContainer" @scroll="handleScroll">
             <div class="chat">
                 <div v-for="msg in msgList" :key="msg.id">
                     <ChatMessage :message="msg"></ChatMessage>
@@ -81,7 +96,8 @@ const clickFrame = (event) => {
                     <icon-smiling-face class="icon" size="20" theme="two-tone" :fill="['#429e9e', '#a8e6f0']"
                         :strokeWidth="3" />
                 </span>
-                <span>
+                <span @click="uploadPic.click()">
+                    <input type="file" ref="uploadPic" accept="image/png, image/jpeg" @change="sendPicMessage">
                     <icon-pic class="icon" theme="two-tone" size="20" :fill="['#429e9e', '#a8e6f0']" :strokeWidth="3" />
                 </span>
                 <span>
@@ -124,6 +140,10 @@ const clickFrame = (event) => {
 
 .chat_frame::-webkit-scrollbar {
     width: 5px;
+}
+
+input[type="file"] {
+    display: none;
 }
 
 .chat_frame::-webkit-scrollbar-track {
@@ -212,9 +232,11 @@ span:hover {
         width: 100%;
         box-shadow: none;
     }
+
     .chat_frame {
         border-radius: 0;
     }
+
     span {
         padding: 3px;
     }

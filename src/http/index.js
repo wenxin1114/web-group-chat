@@ -27,7 +27,7 @@ request.interceptors.response.use(
 		if (code === 401) {           // 没有登录，或者token过期
 			localStorage.removeItem('TOKEN')
 			// 更改登录状态
-			store.commit('changeLoginState', false)
+			store.commit('updateLoginState', false)
 		}
 		return resp
 	},

@@ -58,7 +58,7 @@ export const wsInit = () => {
             // 用户未登录或token已过期, 更改登录状态
             console.log(result.data)
             localStorage.removeItem('TOKEN')
-			store.commit('changeLoginState', false)
+			store.commit('updateLoginState', false)
         }
     };
     // 连接关闭后的回调函数
@@ -101,7 +101,7 @@ export const getUserList = (ids) => {
         Message('用户列表接口异常', 'error')
     })
 }
-
+// 获取消息记录
 export const getMsgRecord = (currentId) => {
     let form = {
         pageSize: 20
@@ -124,9 +124,29 @@ export const getMsgRecord = (currentId) => {
         Message('消息记录接口异常', 'error')
     })
 }
-
+// 更新用户卡片
 export const openUserCard = (user) => {
     store.commit('updateuserCardValue', user)
     store.commit('updateuserCardState', true)
+}
+
+// 上传图片
+export const uploadPicture = async (file) => {
+    let result
+    if (file) {
+        let formData = new FormData()
+        formData.append('image', file)
+        await axios.post('/upload/pic', formData).then(resp => {
+            const { code, message, data } = resp.data
+            if (code === 200) {
+                result = data
+            } else {
+                Message(message, 'warning')
+            }
+        }).catch(error => {
+            Message('上传图片接口异常', 'error')
+        })
+    }
+    return result
 }
 

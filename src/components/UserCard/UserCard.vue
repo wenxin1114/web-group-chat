@@ -1,12 +1,12 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
-import { getUserInfo, getUserList } from '../../utils/index';
+import { getUserInfo, getUserList, uploadPicture } from '../../utils/index';
 import axios from '../../http/index'
 import Message from '../Message/index';
 import { useStore } from 'vuex';
 const store = useStore()
 const editState = ref(false)
-const uploadFile = ref(null)
+const uploadPic = ref(null)
 const form = reactive({
     "nickname": null,
     "avatar": null
@@ -56,26 +56,9 @@ const updateNickname = () => {
         Message('新昵称不能为空', 'warning')
     }
 }
-const uploadPic = async (file) => {
-    let result
-    if (file) {
-        let formData = new FormData()
-        formData.append('image', file)
-        await axios.post('/upload/pic', formData).then(resp => {
-            const { code, message, data } = resp.data
-            if (code === 200) {
-                result = data
-            } else {
-                Message(message, 'warning')
-            }
-        }).catch(error => {
-            Message('上传图片接口异常', 'error')
-        })
-    }
-    return result
-}
+
 const updateAvatar = () => {
-    uploadPic(uploadFile.value.files[0]).then(avatar => {
+    uploadPicture(uploadPic.value.files[0]).then(avatar => {
         if (avatar) {
             axios.post("/user/update", { 'avatar': avatar }).then(resp => {
                 const { code, message } = resp.data
@@ -98,8 +81,8 @@ const updateAvatar = () => {
     <div class="user-info" v-if="isMyself">
         <img class="close" @click="closeCard" src="./svg/close-small.svg">
         <div class="avatar">
-            <img @click="uploadFile.click()" :src="'/api/pic/' + user.avatar" @error="imgError">
-            <input type="file" ref="uploadFile" accept="image/png, image/jpeg" @change="updateAvatar">
+            <img @click="uploadPic.click()" :src="'/api/pic/' + user.avatar" @error="imgError">
+            <input type="file" ref="uploadPic" accept="image/png, image/jpeg" @change="updateAvatar">
         </div>
         <div v-if="!editState" class="info">
             <span class="nickname">{{ user.nickname }}</span>
