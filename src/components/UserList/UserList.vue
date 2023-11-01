@@ -6,8 +6,8 @@ const store = useStore()
 const userList = computed(() => {
     return store.state.userList
 })
-const onlineUser = computed(() => {
-    return store.state.onlineUser
+const onlineNum = computed(() => {
+    return store.state.onlineNum
 })
 const imgError = (event) => {
     event.target.src = new URL('../../assets/default_user.jpg', import.meta.url).href
@@ -18,11 +18,11 @@ getUserList()
 <template>
     <div class="user-list">
         <div class="top">
-            在线人数：{{ onlineUser.length }}
+            在线人数：{{ onlineNum }}
         </div>
         <div class="list">
             <div v-for="user in userList">
-                <div :class="['user', { 'gary': !onlineUser.includes(user.id) }]">
+                <div :class="['user', { 'gary': user.online === 0 ? true : false }]">
                     <img :src="'/api/pic/' + user.avatar" @error="imgError">
                     <span class="nickname">{{ user.nickname }}</span>
                 </div>

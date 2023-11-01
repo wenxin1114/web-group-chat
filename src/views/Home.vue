@@ -1,7 +1,7 @@
 <script setup>
 import ChatFrame from '../components/ChatFrame/ChatFrame.vue';
 import Login from '../components/Login/Login.vue';
-import { wsInit, getUserInfo, getUserList, getMsgRecord } from '../utils';
+import { wsInit, getUserInfo } from '../utils';
 import Message from '../components/Message/index'
 import UserList from '../components/UserList/UserList.vue';
 import { useStore } from 'vuex';

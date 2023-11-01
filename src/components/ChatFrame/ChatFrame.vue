@@ -66,6 +66,7 @@ const handleScroll = () => {
 // 添加表情
 const addEmoji = (emoji) => {
     sendFrom.content += emoji
+    emojiState.value = false
 }
 // 点击窗口执行其它操作
 const clickFrame = (event) => {
@@ -97,7 +98,7 @@ onMounted(() => {
             <textarea ref="myTextarea" v-model="sendFrom.content"></textarea>
             <EmojiBox v-show="emojiState" @add-emoji="addEmoji" ref="emojiBox"></EmojiBox>
             <div class="toolbar">
-                <span @click="emojiState = true" ref="emojiIcon">
+                <span @click="emojiState = !emojiState" ref="emojiIcon">
                     <icon-smiling-face class="icon" size="20" theme="two-tone" :fill="['#429e9e', '#a8e6f0']"
                         :strokeWidth="3" />
                 </span>
