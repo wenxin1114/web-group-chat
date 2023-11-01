@@ -6,9 +6,11 @@ import BigPic from '../BigPic/index'
 const store = useStore()
 const props = defineProps(['message'])
 const userId = props.message.sendUser
-const sendUser = store.state.userList.find(user => user.id === userId)
 const isMyself = computed(() => {
     return userId === store.state.user.id
+})
+const sendUser = computed(() => {
+    return store.state.userList.find(user => user.id === userId)
 })
 const avatarError = (event) => {
     event.target.src = new URL('../../assets/default_user.jpg', import.meta.url).href

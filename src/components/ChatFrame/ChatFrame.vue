@@ -1,8 +1,8 @@
 <script setup>
 import { useStore } from 'vuex';
-import { ref, reactive, nextTick, watch, getCurrentInstance, computed } from 'vue'
+import { ref, reactive, nextTick, watch, getCurrentInstance, computed, onMounted } from 'vue'
 import ChatMessage from '../ChatMessage/ChatMessage.vue';
-import { getMsgRecord, uploadPicture } from '../../utils';
+import { getMsgRecord, getUserInfo, uploadPicture } from '../../utils';
 import Message from '../Message/index';
 import EmojiBox from '../EmojiBox/EmojiBox.vue';
 
@@ -77,12 +77,17 @@ const clickFrame = (event) => {
         emojiState.value = false
     }
 }
+
+
+onMounted(() => {
+    getMsgRecord()
+})
 </script>
 
 <template>
     <div class="cf-container" @click="clickFrame">
         <div class="chat_frame" ref="scrollContainer" @scroll="handleScroll">
-            <div class="chat">
+            <div v-if="msgList" class="chat">
                 <div v-for="msg in msgList" :key="msg.id">
                     <ChatMessage :message="msg"></ChatMessage>
                 </div>

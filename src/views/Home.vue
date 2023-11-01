@@ -19,9 +19,7 @@ const loginState = computed(() => {
 if (loginState) {
     // 如果登录了直接连接 websocket
     Message('已登录', 'success')
-    getUserList()
     getUserInfo()
-    getMsgRecord()
     wsInit()
 } else {
     // 未登录

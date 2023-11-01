@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import { getUserList } from '../../utils';
 const store = useStore()
 const userList = computed(() => {
     return store.state.userList
@@ -11,6 +12,7 @@ const onlineUser = computed(() => {
 const imgError = (event) => {
     event.target.src = new URL('../../assets/default_user.jpg', import.meta.url).href
 }
+getUserList()
 </script>
 
 <template>
