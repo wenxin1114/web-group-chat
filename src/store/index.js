@@ -33,6 +33,7 @@ const store = createStore({
     updateOnlineUser(state, array) {
       // 保存在线人数
       state.onlineNum = array.length
+      console.log("更新用户在线状态")
       // 更新用户在线状态
       array.forEach(id => {
         const userToUpdate = state.userList.find(user => user.id === id);

@@ -68,11 +68,15 @@ if (loginState) {
         align-items:flex-start;
     }
     .left {
-        display: none;
+        /* display: none; */
+        width: 100%;
+        height: auto;
+
     }
     .center {
+        flex: 1;
         width: 100%;
-        height: 100%;
+        /* height: 98%; */
     }
     .right {
         display: none;

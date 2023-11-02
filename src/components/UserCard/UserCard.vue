@@ -1,6 +1,6 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
-import { getUserInfo, getUserList, uploadPicture } from '../../utils/index';
+import { getUserInfo, getUserList, uploadFile } from '../../utils/index';
 import axios from '../../http/index'
 import Message from '../Message/index';
 import { useStore } from 'vuex';
@@ -58,7 +58,7 @@ const updateNickname = () => {
 }
 
 const updateAvatar = () => {
-    uploadPicture(uploadPic.value.files[0]).then(avatar => {
+    uploadFile(uploadPic.value.files[0]).then(avatar => {
         if (avatar) {
             axios.post("/user/update", { 'avatar': avatar }).then(resp => {
                 const { code, message } = resp.data
@@ -79,7 +79,7 @@ const updateAvatar = () => {
 
 <template>
     <div class="user-info" v-if="isMyself">
-        <img class="close" @click="closeCard" src="./svg/close-small.svg">
+        <span class="close" @click="closeCard">&times;</span>
         <div class="avatar">
             <img @click="uploadPic.click()" :src="'/api/pic/' + user.avatar" @error="imgError">
             <input type="file" ref="uploadPic" accept="image/png, image/jpeg" @change="updateAvatar">
@@ -97,7 +97,7 @@ const updateAvatar = () => {
         </div>
     </div>
     <div class="user-info" v-else>
-        <img class="close" @click="closeCard" src="./svg/close-small.svg">
+        <span class="close" @click="closeCard">&times;</span>
         <div class="avatar">
             <img :src="userCardValue.avatar" @error="imgError">
         </div>
@@ -209,7 +209,12 @@ input[type="file"] {
 }
 
 .close {
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 20px;
     position: absolute;
+    top: 5px;
     right: 10px;
     z-index: 20;
     border-radius: 50%;

@@ -1,7 +1,6 @@
 import axios from '../http'
 import store from '../store'
 import Message from '../components/Message/index'
-
 let heartbeatTimer;
 let ws
 const heartbeatMsg = '{"data":"?","type":0}';
@@ -58,7 +57,7 @@ export const wsInit = () => {
             // 用户未登录或token已过期, 更改登录状态
             console.log(result.data)
             localStorage.removeItem('TOKEN')
-			store.commit('updateLoginState', false)
+            store.commit('updateLoginState', false)
         }
     };
     // 连接关闭后的回调函数
@@ -131,12 +130,10 @@ export const openUserCard = (user) => {
 }
 
 // 上传图片
-export const uploadPicture = async (file) => {
+export const uploadFile = async (formData) => {
     let result
-    if (file) {
-        let formData = new FormData()
-        formData.append('image', file)
-        await axios.post('/upload/pic', formData).then(resp => {
+    if (formData) {
+        await axios.post('/file/upload', formData).then(resp => {
             const { code, message, data } = resp.data
             if (code === 200) {
                 result = data
@@ -144,9 +141,11 @@ export const uploadPicture = async (file) => {
                 Message(message, 'warning')
             }
         }).catch(error => {
-            Message('上传图片接口异常', 'error')
+            Message('文件上传接口异常', 'error')
         })
     }
     return result
 }
+
+
 

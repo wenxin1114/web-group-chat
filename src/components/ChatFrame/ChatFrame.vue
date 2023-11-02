@@ -2,25 +2,36 @@
 import { useStore } from 'vuex';
 import { ref, reactive, nextTick, watch, getCurrentInstance, computed, onMounted } from 'vue'
 import ChatMessage from '../ChatMessage/ChatMessage.vue';
-import { getMsgRecord, getUserInfo, uploadPicture } from '../../utils';
+import { getMsgRecord, uploadFile } from '../../utils';
 import Message from '../Message/index';
 import EmojiBox from '../EmojiBox/EmojiBox.vue';
-
+import Recorder from 'js-audio-recorder';
 const store = useStore()
 const { proxy } = getCurrentInstance()
-const emojiState = ref(false)
+
 const sendFrom = reactive({
     sendUser: null,
     content: '',
-    contentType: 0
+    contentType: 0,
+    audioDuration: null,
+    audioSize: null
 })
-const msgList = computed(() => {
-    return store.state.msgList
-})
+
+const emojiState = ref(false)
 const scrollContainer = ref(null);
 const emojiBox = ref(null)
 const emojiIcon = ref(null)
 const uploadPic = ref(null)
+const chatType = ref(true)
+const recordState = ref(false)
+const recorder = ref(new Recorder({
+    sampleBits: 16, // 采样位数，支持 8 或 16，默认是16
+    sampleRate: 16000, // 采样率，支持 11025、16000、22050、24000、44100、48000，根据浏览器默认值，我的chrome是48000
+    numChannels: 1 // 声道，支持 1 或 2， 默认是1
+}))
+const msgList = computed(() => {
+    return store.state.msgList
+})
 // 监听消息数组长度
 watch(() => store.state.msgList.length, () => {
     nextTick(() => {
@@ -32,7 +43,7 @@ const sendMessage = () => {
     if (sendFrom.content !== "") {
         sendFrom.sendUser = store.state.user.id
         proxy.$axios.post("/chat/msg/send", sendFrom).then(resp => {
-            const { code, message, data } = resp.data
+            const { code, message } = resp.data
             if (code === 200) {
                 // 发送成功
                 console.log(message)
@@ -42,19 +53,35 @@ const sendMessage = () => {
         })
         sendFrom.content = ''
         sendFrom.contentType = 0
+        sendFrom.audioDuration = null
+        sendFrom.audioSize = null
     }
 }
 // 上传图片
 const sendPicMessage = () => {
-    uploadPicture(uploadPic.value.files[0]).then(resp => {
+    let formData = new FormData()
+    formData.append('file', uploadPic.value.files[0])
+    uploadFile().then(resp => {
         if (resp) {
             sendFrom.contentType = 1
             sendFrom.content = resp
             sendMessage()
-
         }
     })
-
+}
+// 上传语音
+const snedAudioMessage = () => {
+    let formData = new FormData()
+    formData.append('file', recorder.value.getWAVBlob(), 'audio.wav')
+    uploadFile(formData).then(resp => {
+        if (resp) {
+            sendFrom.contentType = 2
+            sendFrom.content = resp
+            sendFrom.audioDuration = recorder.value.duration
+            sendFrom.audioSize = recorder.value.fileSize
+            sendMessage()
+        }
+    })
 }
 // 上滑获取历史记录
 const handleScroll = () => {
@@ -78,7 +105,34 @@ const clickFrame = (event) => {
         emojiState.value = false
     }
 }
-
+// 录音
+const recordStart = () => {
+    Recorder.getPermission().then(() => {
+        console.log('给录音权限了');
+        recorder.value.start().then(() => {
+            recordState.value = true
+            // 开始录音
+            console.log('开始录音')
+        }, (error) => {
+            // 出错了
+            console.log(`${error.name} : ${error.message}`);
+        });
+    }, (error) => {
+        console.log(`${error.name} : ${error.message}`);
+    });
+}
+const recordEnd = () => {
+    console.log('结束录音')
+    recorder.value.stop()
+    recordState.value = false
+    if (recorder.value.duration < 2) {
+        Message('录制时间太短', 'warning')
+    } else if (recorder.value.duration > 180) {
+        Message('录制时间太长，建议3分钟之内', 'warning')
+    } else {
+        snedAudioMessage()
+    }
+}
 
 onMounted(() => {
     getMsgRecord()
@@ -95,9 +149,18 @@ onMounted(() => {
             </div>
         </div>
         <div class="send_box" @keydown.enter="sendMessage" @keydown.enter.prevent>
-            <textarea ref="myTextarea" v-model="sendFrom.content"></textarea>
+            <textarea v-if="chatType" ref="myTextarea" v-model="sendFrom.content"></textarea>
+            <div v-else @mousedown="recordStart" @mouseup="recordEnd" class="record-btn">
+                <span v-if="recordState">正在录音: {{ parseInt(recorder.duration) }}s</span>
+                <span v-else>按住开始录音</span>
+            </div>
             <EmojiBox v-show="emojiState" @add-emoji="addEmoji" ref="emojiBox"></EmojiBox>
             <div class="toolbar">
+                <span @click="chatType = !chatType">
+                    <icon-enter-the-keyboard v-if="chatType" theme="two-tone" size="20" :fill="['#4a90e2', '#a8e6f0']"
+                        :strokeWidth="3" />
+                    <icon-voice v-else theme="two-tone" size="20" :fill="['#4a90e2', '#a8e6f0']" :strokeWidth="3" />
+                </span>
                 <span @click="emojiState = !emojiState" ref="emojiIcon">
                     <icon-smiling-face class="icon" size="20" theme="two-tone" :fill="['#429e9e', '#a8e6f0']"
                         :strokeWidth="3" />
@@ -105,10 +168,6 @@ onMounted(() => {
                 <span @click="uploadPic.click()">
                     <input type="file" ref="uploadPic" accept="image/png, image/jpeg" @change="sendPicMessage">
                     <icon-pic class="icon" theme="two-tone" size="20" :fill="['#429e9e', '#a8e6f0']" :strokeWidth="3" />
-                </span>
-                <span>
-                    <icon-folder-upload class="icon" size="20" theme="two-tone" :fill="['#429e9e', '#a8e6f0']"
-                        :strokeWidth="3" />
                 </span>
                 <span @click="sendMessage">
                     <icon-send class="icon" theme="two-tone" size="20" :fill="['#429e9e', '#a8e6f0']" :strokeWidth="3" />
@@ -199,11 +258,33 @@ input[type="file"] {
     border-radius: 10px;
     color: #000000;
     margin: 0 5px;
-    border-radius: 10px;
 }
 
 .send_box textarea:focus {
     border: 1px solid #1078e8;
+}
+
+.send_box .record-btn {
+    text-align: center;
+    flex-grow: 1;
+    border-radius: 10px;
+    background-color: #fff;
+    border: none;
+    outline: none;
+    height: auto;
+    padding: 10px;
+    margin: 0 5px;
+    user-select:none;
+}
+
+.send_box .record-btn:hover {
+    cursor: pointer;
+    border: 1px solid #1078e8;
+}
+
+.send_box .record-btn:active {
+    border: 1px solid #1078e8;
+    background: linear-gradient(145deg, #ece6e6, #f0f0f0);
 }
 
 .toolbar {
@@ -212,13 +293,13 @@ input[type="file"] {
     flex-basis: auto;
 }
 
-span {
+.toolbar span {
     padding: 8px;
     border-radius: 10px;
     transition: background-color .4s ease-in;
 }
 
-span:hover {
+.toolbar span:hover {
     background-color: aqua;
     cursor: pointer;
 }
@@ -231,7 +312,6 @@ span:hover {
     border: none;
 }
 
-
 @media screen and (max-width: 768px) {
     .cf-container {
         height: 100%;
@@ -240,6 +320,10 @@ span:hover {
     }
 
     .chat_frame {
+        border-radius: 0;
+    }
+
+    .send_box {
         border-radius: 0;
     }
 

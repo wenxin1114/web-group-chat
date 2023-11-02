@@ -1,11 +1,13 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useStore } from 'vuex';
 import { openUserCard } from '../../utils/index'
 import BigPic from '../BigPic/index'
+import { Howl } from 'howler'
 const store = useStore()
 const props = defineProps(['message'])
 const userId = props.message.sendUser
+const twinkleState = ref(false)
 const isMyself = computed(() => {
     return userId === store.state.user.id
 })
@@ -17,6 +19,17 @@ const avatarError = (event) => {
 }
 const picError = (event) => {
     event.target.src = new URL('../../assets/picError.svg', import.meta.url).href
+}
+
+const clickAudio = () => {
+    twinkleState.value = true
+    let sound = new Howl({
+        src: [`/api/audio/${props.message.content}`]
+    });
+    sound.on('end', () => {
+        twinkleState.value = false
+      });
+    sound.play();
 }
 
 const showTime = computed(() => {
@@ -52,6 +65,12 @@ const showTime = computed(() => {
                 <p v-if="message.contentType === 0">{{ message.content }}</p>
                 <img v-else-if="message.contentType === 1" @click="BigPic($event.target.src)"
                     :src="'/api/pic/' + message.content" @error="picError">
+                <div class="audio" v-else-if="message.contentType === 2" @click="clickAudio">
+                    <span :class="{'icon-twinkle': twinkleState}">
+                        <icon-acoustic theme="outline" size="20" :fill="isMyself ? '#ffffff' : '#000000'" :strokeWidth="3" />
+                    </span>
+                    <span class="text">{{ parseInt(message.audioDuration) }}"</span>
+                </div>
             </div>
         </div>
         <div v-if="isMyself" class="avatar">
@@ -119,8 +138,43 @@ const showTime = computed(() => {
     cursor: zoom-in;
 }
 
+.msg .audio {
+    display: flex;
+    justify-content: center;
+}
+
+.msg .audio:hover {
+    cursor: pointer;
+}
+
+.msg .audio .icon-twinkle {
+    animation: twinkle 1s infinite;
+}
+
+.msg .audio .text {
+    margin-left: 5px;
+}
+
+@keyframes twinkle {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 @media screen and (max-width: 768px) {
     .nickname {
         width: 200;
     }
-}</style>
+}
+</style>
