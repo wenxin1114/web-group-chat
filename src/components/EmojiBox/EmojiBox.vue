@@ -20,7 +20,7 @@ const clickEmoji = (e) => {
     width: 320px;
     height: 250px;
     position: absolute;
-    right: 50px;
+    right: 20px;
     bottom: 50px;
     background-color: #dad3d3;
     border-radius: 10px;
@@ -57,6 +57,7 @@ const clickEmoji = (e) => {
 
 .emoji-box span {
     font-size: 23px;
+    display: inline-block;
     cursor: pointer;
 }
 

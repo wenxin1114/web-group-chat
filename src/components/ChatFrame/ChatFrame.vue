@@ -33,11 +33,9 @@ const msgList = computed(() => {
     return store.state.msgList
 })
 // 监听消息数组长度
-watch(() => store.state.msgList.length, () => {
-    nextTick(() => {
-        scrollContainer.value.scrollTop = scrollContainer.value.scrollHeight
-    })
-})
+// watch(() => msgList.length, () => {
+
+// })
 // 发送消息
 const sendMessage = () => {
     if (sendFrom.content !== "") {
@@ -46,6 +44,7 @@ const sendMessage = () => {
             const { code, message } = resp.data
             if (code === 200) {
                 // 发送成功
+
                 console.log(message)
             }
         }).catch(error => {
@@ -106,36 +105,40 @@ const clickFrame = (event) => {
     }
 }
 // 录音
-const recordStart = () => {
-    Recorder.getPermission().then(() => {
-        console.log('给录音权限了');
-        recorder.value.start().then(() => {
-            recordState.value = true
-            // 开始录音
-            console.log('开始录音')
-        }, (error) => {
-            // 出错了
-            console.log(`${error.name} : ${error.message}`);
-        });
-    }, (error) => {
-        console.log(`${error.name} : ${error.message}`);
-    });
-}
-const recordEnd = () => {
-    console.log('结束录音')
-    recorder.value.stop()
-    recordState.value = false
-    if (recorder.value.duration < 2) {
-        Message('录制时间太短', 'warning')
-    } else if (recorder.value.duration > 180) {
-        Message('录制时间太长，建议3分钟之内', 'warning')
+const recording = () => {
+    if (recordState.value) {
+        // 正在录音
+        console.log('结束录音')
+        recorder.value.stop()
+        recordState.value = false
+        if (recorder.value.duration < 2) {
+            Message('录制时间太短，建议2秒以上', 'warning')
+        } else if (recorder.value.duration > 180) {
+            Message('录制时间太长，建议3分钟之内', 'warning')
+        } else {
+            snedAudioMessage()
+        }
     } else {
-        snedAudioMessage()
+        Recorder.getPermission().then(() => {
+            recorder.value.start().then(() => {
+                recordState.value = true
+                // 开始录音
+                console.log('开始录音')
+            }, (error) => {
+                // 出错了
+                Message('录音异常', 'warning')
+            });
+        }, (error) => {
+            Message('没有允许录音权限，请授权', 'warning')
+        });
     }
 }
 
+
 onMounted(() => {
+    store.commit('saveScrollContainer', scrollContainer.value)
     getMsgRecord()
+
 })
 </script>
 
@@ -150,9 +153,9 @@ onMounted(() => {
         </div>
         <div class="send_box" @keydown.enter="sendMessage" @keydown.enter.prevent>
             <textarea v-if="chatType" ref="myTextarea" v-model="sendFrom.content"></textarea>
-            <div v-else @mousedown="recordStart" @mouseup="recordEnd" class="record-btn">
-                <span v-if="recordState">正在录音: {{ parseInt(recorder.duration) }}s</span>
-                <span v-else>按住开始录音</span>
+            <div v-else @click="recording" class="record-btn">
+                <span v-if="recordState">录音中: {{ parseInt(recorder.duration) }}s</span>
+                <span v-else>点击开始录音</span>
             </div>
             <EmojiBox v-show="emojiState" @add-emoji="addEmoji" ref="emojiBox"></EmojiBox>
             <div class="toolbar">
@@ -274,7 +277,7 @@ input[type="file"] {
     height: auto;
     padding: 10px;
     margin: 0 5px;
-    user-select:none;
+    user-select: none;
 }
 
 .send_box .record-btn:hover {
@@ -327,7 +330,7 @@ input[type="file"] {
         border-radius: 0;
     }
 
-    span {
+    .toolbar span {
         padding: 3px;
     }
 }

@@ -1,4 +1,5 @@
 import { createStore } from 'vuex'
+import {nextTick} from 'vue'
 
 // 创建一个新的 store 实例
 const store = createStore({
@@ -9,9 +10,7 @@ const store = createStore({
       userList: [], // 用户列表
       onlineNum: 0,
       msgList: [], // 用户历史记录
-      userCardState: false, // 用户卡片状态
-      userCardValue: {}, // 用户卡片内容
-      bigPicShow: false, // 大图显示状态
+      scrollContainer: null
     }
   },
   mutations: {
@@ -21,8 +20,15 @@ const store = createStore({
     updateUser(state, user) {
       state.user = user
     },
-    updateUserList(state, userList) {
+    saveUserList(state, userList) {
       state.userList = userList
+    },
+    updateUserList(state, updateDate) {
+      state.userList.forEach(user => {
+        if (user.id === updateDate.id) {
+          user = Object.assign(user, updateDate)
+        }
+      })
     },
     msgListAdd(state, element) {
       state.msgList.push(element)
@@ -34,33 +40,25 @@ const store = createStore({
       // 保存在线人数
       state.onlineNum = array.length
       console.log("更新用户在线状态")
-      // 更新用户在线状态
-      array.forEach(id => {
-        const userToUpdate = state.userList.find(user => user.id === id);
-        if (userToUpdate) {
-          userToUpdate.online = 1;
+      state.userList.forEach(user => {
+        if (array.includes(user.id)) {
+          user.online = 1
+        } else {
+          user.online = 0
         }
-      });
-      // 使用 sort 方法将 online 等于 1 的元素放在最前面
-      state.userList.sort((a, b) => {
-        if (a.online === 1 && b.online !== 1) {
-          return -1;
-        } else if (a.online !== 1 && b.online === 1) {
-          return 1;
-        }
-        return 0;
-      });
+      })
     },
-    updateuserCardValue(state, value) {
-      state.userCardValue = value
+    saveScrollContainer(state, scrollContainer) {
+      state.scrollContainer = scrollContainer
     },
-    updateuserCardState(state, newState) {
-      state.userCardState = newState
-    },
-    updateBigPicShow(state, newState) {
-      state.bigPicShow = newState
+    scrollContainerToBottom(state) {
+      nextTick(() => {
+        console.log("滚动条拉到最下面")
+        state.scrollContainer.scrollTop = state.scrollContainer.scrollHeight
+      })
     }
   }
 })
+
 
 export default store

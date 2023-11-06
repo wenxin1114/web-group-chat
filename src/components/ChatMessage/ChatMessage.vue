@@ -1,7 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useStore } from 'vuex';
-import { openUserCard } from '../../utils/index'
 import BigPic from '../BigPic/index'
 import { Howl } from 'howler'
 const store = useStore()
@@ -49,7 +48,7 @@ const showTime = computed(() => {
 <template>
     <div v-if="sendUser" class="message_container" :style="{ justifyContent: isMyself ? 'right' : 'left' }">
         <div v-if="!isMyself" class="avatar">
-            <img @click="openUserCard(sendUser)" :src="'/api/pic/' + sendUser.avatar" @error="avatarError">
+            <img :src="'/api/pic/' + sendUser.avatar" @error="avatarError">
         </div>
         <div class="content">
             <div :style="{ textAlign: isMyself ? 'right' : 'left' }">
@@ -74,7 +73,7 @@ const showTime = computed(() => {
             </div>
         </div>
         <div v-if="isMyself" class="avatar">
-            <img @click="openUserCard(sendUser)" :src="'/api/pic/' + sendUser.avatar" @error="avatarError">
+            <img :src="'/api/pic/' + sendUser.avatar" @error="avatarError">
         </div>
     </div>
 </template>

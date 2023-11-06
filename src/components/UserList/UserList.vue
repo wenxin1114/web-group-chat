@@ -4,7 +4,17 @@ import { useStore } from 'vuex';
 import { getUserList } from '../../utils';
 const store = useStore()
 const userList = computed(() => {
-    return store.state.userList
+    let userList = store.state.userList
+    // 使用 sort 方法将 online 等于 1 的元素放在最前面
+    userList.sort((a, b) => {
+        if (a.online === 1 && b.online !== 1) {
+            return -1;
+        } else if (a.online !== 1 && b.online === 1) {
+            return 1;
+        }
+        return 0;
+    })
+    return userList
 })
 const onlineNum = computed(() => {
     return store.state.onlineNum

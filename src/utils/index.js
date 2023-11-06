@@ -33,7 +33,8 @@ const heartbeat = () => {
 
 export const wsInit = () => {
     // WebSocket构造函数，创建WebSocket对象
-    ws = new WebSocket(`ws://${location.host}/ws/${localStorage.getItem('TOKEN')}`)
+    ws = new WebSocket(`wss://${location.host}/ws/${localStorage.getItem('TOKEN')}`)
+
     // 连接成功后的回调函数
     ws.onopen = () => {
         console.log('客户端连接成功')
@@ -55,9 +56,13 @@ export const wsInit = () => {
             store.commit('updateOnlineUser', result.data)
         } else if (result.type === 3) {
             // 用户未登录或token已过期, 更改登录状态
-            console.log(result.data)
             localStorage.removeItem('TOKEN')
+            
             store.commit('updateLoginState', false)
+        } else if (result.type === 4) {
+            // 用户有更新用户操作
+            console.log("用户更新")
+            store.commit('updateUserList', result.data)
         }
     };
     // 连接关闭后的回调函数
@@ -92,7 +97,7 @@ export const getUserList = (ids) => {
     axios.post("/user/list", ids).then(resp => {
         const { code, message, data } = resp.data
         if (code === 200) {
-            store.commit('updateUserList', data)
+            store.commit('saveUserList', data)
         } else {
             Message(message, 'warning')
         }
@@ -114,19 +119,17 @@ export const getMsgRecord = (currentId) => {
         }
         form.currentId = store.state.msgList[0].id
     }
+    console.log("获取历史消息")
     axios.post("/chat/msg/record", form).then(resp => {
         const { code, data } = resp.data
         if (code === 200) {
             store.commit('msgListInsert', data)
+            store.commit('scrollContainerToBottom')
         }
     }).catch(error => {
+        console.error(error)
         Message('消息记录接口异常', 'error')
     })
-}
-// 更新用户卡片
-export const openUserCard = (user) => {
-    store.commit('updateuserCardValue', user)
-    store.commit('updateuserCardState', true)
 }
 
 // 上传图片

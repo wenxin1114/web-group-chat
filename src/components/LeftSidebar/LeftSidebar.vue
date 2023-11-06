@@ -1,7 +1,7 @@
 <script setup>
 import { useStore } from 'vuex';
-import {computed} from 'vue'
-import {openUserCard} from '../../utils/index'
+import { ref, computed } from 'vue'
+import UserCard from '../UserCard/UserCard.vue';
 const store = useStore()
 const user = computed(() => {
     return store.state.user
@@ -10,6 +10,8 @@ const imgError = (event) => {
     event.target.src = new URL('../../assets/default_user.jpg', import.meta.url).href
 }
 
+const cardState = ref(false)
+
 const onlineNum = computed(() => {
     return store.state.onlineNum
 })
@@ -17,14 +19,14 @@ const onlineNum = computed(() => {
 </script>
 <template>
     <div class="left-sidebar">
-        <div class="avatar" >
-            <img @click="openUserCard(user)" :src="'/api/pic/' + user.avatar" @error="imgError">
+        <div class="avatar">
+            <img @click="cardState = true" :src="'/api/pic/' + user.avatar" @error="imgError">
         </div>
-        <div class="online">{{ onlineNum }}</div>
-        <div>
-
+        <div class="online">
+            问心聊天室 ({{ onlineNum }})
         </div>
     </div>
+    <UserCard v-if="cardState" @close-card="cardState = false"></UserCard>
 </template>
 
 <style scoped>
@@ -33,19 +35,27 @@ const onlineNum = computed(() => {
     height: 100%;
     border-radius: 15px;
     margin-right: 8px;
-    background-color: #70e3e3;
+    background-color: rgb(159, 242, 242);
     display: flex;
-    justify-content: center;
+    align-items: center;
+    flex-direction: column;
     box-shadow: 0 0 15px rgba(0, 0, 0, .5);
-
 }
+
+.item-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 15px;
+}
+
 .avatar {
     width: 60px;
-    height: 100%;
+    height: 60px;
+    padding: 2px;
     display: flex;
     justify-content: center;
-    padding: 2px;
 }
+
 .avatar img {
     width: 50px;
     height: 50px;
@@ -58,20 +68,31 @@ const onlineNum = computed(() => {
     cursor: pointer;
     border: 2px solid #3046c1;
 }
+.online {
+    margin: 0 8px;
+    text-align: center;
+    color: #000000;
+    font-size: 16px;
+    display: none;
+}
 
 @media screen and (max-width: 768px) {
     .left-sidebar {
         width: 100%;
+        height: 50px;
         justify-content: flex-start;
         border-radius: 0;
         align-items: center;
         box-shadow: none;
+        flex-direction: row;
+
     }
+
     .avatar {
-        /* border-bottom: none;
-        border-right: 1px solid #86898b; */
         align-items: center;
-        text-align: center;
+    }
+    .online {
+        display: inline-block;
     }
 }
 </style>
