@@ -1,11 +1,12 @@
 <script setup>
 import { useStore } from 'vuex';
-import { ref, reactive, nextTick, watch, getCurrentInstance, computed, onMounted } from 'vue'
+import { ref, reactive, nextTick, getCurrentInstance, computed, onMounted } from 'vue'
 import ChatMessage from '../ChatMessage/ChatMessage.vue';
 import { getMsgRecord, uploadFile } from '../../utils';
 import Message from '../Message/index';
 import EmojiBox from '../EmojiBox/EmojiBox.vue';
 import Recorder from 'js-audio-recorder';
+import Loading from '../Loading/Loading.vue';
 const store = useStore()
 const { proxy } = getCurrentInstance()
 
@@ -16,7 +17,7 @@ const sendFrom = reactive({
     audioDuration: null,
     audioSize: null
 })
-
+const loadingState = ref(true)
 const emojiState = ref(false)
 const scrollContainer = ref(null);
 const emojiBox = ref(null)
@@ -56,6 +57,23 @@ const sendMessage = () => {
         sendFrom.audioSize = null
     }
 }
+
+const throttle = (func, limit) => {
+    let timeout;
+    return () => {
+        const context = this;
+        const args = arguments;
+        if (!timeout) {
+            // 第一次立即执行
+            func.apply(context, args);
+            timeout = setTimeout(() => {
+                timeout = null;
+            }, limit);
+        }
+    };
+}
+
+
 // 上传图片
 const sendPicMessage = () => {
     let formData = new FormData()
@@ -83,10 +101,11 @@ const snedAudioMessage = () => {
     })
 }
 // 上滑获取历史记录
-const handleScroll = () => {
+const handleScroll = (event) => {
     const scrollY = scrollContainer.value.scrollTop;
-    if (scrollY <= 10) {
+    if (event.deltaY < 0 && scrollY <= 10) {
         getMsgRecord()
+        scrollContainer.value.scrollTo(scrollY, true);
     }
 }
 // 添加表情
@@ -133,23 +152,35 @@ const recording = () => {
         });
     }
 }
-
+const toBottom = async () => {
+    await getMsgRecord()
+    nextTick(() => {
+        console.log("滚动条拉到最下面");
+        scrollContainer.value.scrollTop = scrollContainer.value.scrollHeight
+    });
+    loadingState.value = false
+}
+console.log(scrollContainer.value)
 
 onMounted(() => {
-    store.commit('saveScrollContainer', scrollContainer.value)
-    getMsgRecord()
+    store.commit("saveScrollContainer", scrollContainer)
+    toBottom(); // 滚动到底部.
 
 })
+
 </script>
 
 <template>
     <div class="cf-container" @click="clickFrame">
-        <div class="chat_frame" ref="scrollContainer" @scroll="handleScroll">
+        <div class="chat-frame" ref="scrollContainer" @wheel="throttle(handleScroll($event), 100)">
             <div v-if="msgList" class="chat">
                 <div v-for="msg in msgList" :key="msg.id">
                     <ChatMessage :message="msg"></ChatMessage>
                 </div>
             </div>
+        </div>
+        <div v-if="loadingState" class="loading" @click="toBottom">
+            <Loading></Loading>
         </div>
         <div class="send_box" @keydown.enter="sendMessage" @keydown.enter.prevent>
             <textarea v-if="chatType" ref="myTextarea" v-model="sendFrom.content"></textarea>
@@ -182,6 +213,7 @@ onMounted(() => {
 
 <style scoped>
 .cf-container {
+    position: relative;
     min-width: 360px;
     height: 100%;
     display: flex;
@@ -190,10 +222,9 @@ onMounted(() => {
     flex-direction: column;
     border-radius: 15px;
     box-shadow: 0 0 15px rgba(0, 0, 0, .5);
-
 }
 
-.chat_frame {
+.chat-frame {
     width: 100%;
     height: 100%;
     background-color: #efeded;
@@ -204,9 +235,10 @@ onMounted(() => {
 .chat {
     padding-left: 10px;
     padding-right: 10px;
+    height: 100%;
 }
 
-.chat_frame::-webkit-scrollbar {
+.chat-frame::-webkit-scrollbar {
     width: 5px;
 }
 
@@ -214,7 +246,7 @@ input[type="file"] {
     display: none;
 }
 
-.chat_frame::-webkit-scrollbar-track {
+.chat-frame::-webkit-scrollbar-track {
     /* 滚动条背景颜色 */
     background-color: transparent;
     border-radius: 15px;
@@ -222,7 +254,7 @@ input[type="file"] {
 
 }
 
-.chat_frame::-webkit-scrollbar-thumb {
+.chat-frame::-webkit-scrollbar-thumb {
     /* 滚动条滑块颜色 */
     background-color: #3c6fdd;
     border-radius: 15px;
@@ -231,7 +263,7 @@ input[type="file"] {
 
 }
 
-.chat_frame::-webkit-scrollbar-thumb:hover {
+.chat-frame::-webkit-scrollbar-thumb:hover {
     /* 鼠标悬停时滚动条滑块颜色 */
     background-color: #dfd61c;
 
@@ -315,6 +347,24 @@ input[type="file"] {
     border: none;
 }
 
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(234, 236, 240);
+    color: #000000;
+    font-size: 14px;
+    padding: 4px;
+    border-radius: 15px;
+}
+
+.msg-hint:hover {
+    cursor: pointer;
+}
+
 @media screen and (max-width: 768px) {
     .cf-container {
         height: 100%;
@@ -322,7 +372,7 @@ input[type="file"] {
         box-shadow: none;
     }
 
-    .chat_frame {
+    .chat-frame {
         border-radius: 0;
     }
 

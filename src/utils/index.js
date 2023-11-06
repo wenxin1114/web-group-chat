@@ -51,13 +51,13 @@ export const wsInit = () => {
         } else if (result.type === 1) {
             // 聊天数据
             store.commit('msgListAdd', result.data)
+            store.commit('scrollContainerToBottom')
         } else if (result.type === 2) {
             // 在线人数更新
             store.commit('updateOnlineUser', result.data)
         } else if (result.type === 3) {
             // 用户未登录或token已过期, 更改登录状态
             localStorage.removeItem('TOKEN')
-            
             store.commit('updateLoginState', false)
         } else if (result.type === 4) {
             // 用户有更新用户操作
@@ -84,7 +84,7 @@ export const wsInit = () => {
 
 export const getUserInfo = () => {
     axios.get("/user/info").then(resp => {
-        const { code, message, data } = resp.data
+        const { code, data } = resp.data
         if (code === 200) {
             store.commit('updateUser', data)
         }
@@ -106,7 +106,7 @@ export const getUserList = (ids) => {
     })
 }
 // 获取消息记录
-export const getMsgRecord = (currentId) => {
+export const getMsgRecord = async () => {
     let form = {
         pageSize: 20
     }
@@ -120,16 +120,15 @@ export const getMsgRecord = (currentId) => {
         form.currentId = store.state.msgList[0].id
     }
     console.log("获取历史消息")
-    axios.post("/chat/msg/record", form).then(resp => {
-        const { code, data } = resp.data
-        if (code === 200) {
-            store.commit('msgListInsert', data)
-            store.commit('scrollContainerToBottom')
+    try {
+        const resp = await axios.post("/chat/msg/record", form)
+        if (resp.data.code === 200) {
+            store.commit('msgListInsert', resp.data.data)
         }
-    }).catch(error => {
+    } catch (error) {
         console.error(error)
         Message('消息记录接口异常', 'error')
-    })
+    }
 }
 
 // 上传图片
